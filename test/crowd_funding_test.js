@@ -11,9 +11,9 @@ contract('CrowdFundingWithDeadline', (accounts) => {
     const ONE_ETH = 1000000000000000000;
 
     const ONGOING_STATE = 0;
-    const FAILED_STATE = '1';
-    const SUCCEEDED_STATE = '2';
-    const PAID_OUT_STATE = '3';
+    const FAILED_STATE = 1;
+    const SUCCEEDED_STATE = 2;
+    const PAID_OUT_STATE = 3;
 
     beforeEach(async () => {
         contract = await CrowdFundingWithDeadline.new(
@@ -32,13 +32,26 @@ contract('CrowdFundingWithDeadline', (accounts) => {
         let campaignName = await contract.name.call();
         expect(campaignName).to.equal('funding');
 
-        let targetAmount = await contract.targetAmount.call();        
+        let targetAmount = await contract.targetAmount.call();
         expect(targetAmount.toString()).to.equal(ONE_ETH.toString());
 
         let actualBeneficiary = await contract.beneficiary.call();
         expect(actualBeneficiary).to.equal(beneficiary);
 
-        let state = await contract.state.call();        
+        let state = await contract.state.call();
         expect(state.valueOf().toNumber()).to.equal(ONGOING_STATE);
+    });
+
+    it('funds are contributed', async () => {
+        await contract.contribute({
+            value: ONE_ETH,
+            from: contractCreator
+        });
+
+        let contributed = await contract.amounts.call(contractCreator);
+        expect(contributed.toString()).to.equal(ONE_ETH.toString());
+
+        let totalCollected = await contract.totalCollected.call();
+        expect(totalCollected.toString()).to.equal(ONE_ETH.toString());
     });
 });
